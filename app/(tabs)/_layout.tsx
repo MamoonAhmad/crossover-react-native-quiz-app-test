@@ -1,34 +1,83 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Tabs } from "expo-router";
+import React from "react";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: "white",
         headerShown: false,
-      }}>
+
+        tabBarStyle: {
+          left: 0,
+          bottom: 0,
+          backgroundColor: "black",
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: "Home",
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
+            <MaterialIcons
+              name="home"
+              size={30}
+              color={focused ? color : "gray"}
+            />
           ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="discover"
         options={{
-          title: 'Explore',
+          title: "Discover",
+          tabBarIcon: ({ focused, color }) => (
+            <MaterialIcons
+              name="explore"
+              size={30}
+              color={focused ? color : "gray"}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="activity"
+        options={{
+          title: "Activity",
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'code-slash' : 'code-slash-outline'} color={color} />
+            <MaterialIcons
+              name="timer"
+              size={30}
+              color={focused ? color : "gray"}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="bookmarks"
+        options={{
+          title: "Bookmarks",
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialIcons
+              name="bookmark"
+              size={30}
+              color={focused ? color : "gray"}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialIcons
+              name="account-circle"
+              size={30}
+              color={focused ? color : "gray"}
+            />
           ),
         }}
       />
