@@ -1,70 +1,87 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import {
+  View,
+  Dimensions,
+  FlatList,
+  SafeAreaView,
+  StatusBar,
+} from "react-native";
+import React, { useEffect, useState } from "react";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { ForYouQuestionAPIResponse } from "@/components/Quiz/types";
+import { TopBar } from "@/components/TopBar";
+import { QuestionView } from "@/components/Quiz/QuestionView";
+import { UsableHeightContext } from "@/contexts/UsableHeightContext";
+
+const { width } = Dimensions.get("window");
+
+// Number of questions to load initially
+const INITIAL_QUESTION_TO_LOAD = 3;
 
 export default function HomeScreen() {
+  const [data, setData] = useState<(ForYouQuestionAPIResponse | undefined)[]>(
+    []
+  );
+
+  // Load initial questions
+  useEffect(() => {
+    for (let a = 0; a < INITIAL_QUESTION_TO_LOAD; a++) {
+      getNextQuestion().then((res) => setData((d) => [...d, res])).catch;
+    }
+  }, []);
+
+  const [useHeight, setUseHeight] = useState(0);
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <SafeAreaView
+      style={{
+        marginTop: StatusBar.currentHeight,
+      }}
+    >
+      {/* Top Bar */}
+      <View style={{ width, position: "relative", zIndex: 10 }}>
+        <View style={{ left: 0, top: 0, position: "absolute", width }}>
+          <TopBar />
+        </View>
+      </View>
+
+      {/* Infinite Scroll */}
+      <View
+        onLayout={(l) => {
+          // This will acquire the remaining height on the screen
+          // excluding the bottom nav
+          // This will let each item in the Infinite scroll to have the consistent height
+          setUseHeight(l.nativeEvent.layout.height);
+        }}
+        style={{
+          height: "100%",
+        }}
+      >
+        <UsableHeightContext.Provider value={useHeight}>
+          <FlatList
+            data={data}
+            keyExtractor={(q, i) => String(q?.id) + i?.toString()}
+            renderItem={(item) => {
+              return <QuestionView question={item.item} />;
+            }}
+            pagingEnabled
+            horizontal={false}
+            showsVerticalScrollIndicator={false}
+            onEndReached={() => {
+              // Retrieve next question
+              getNextQuestion().then((res) => {
+                setData((d) => [...d, res]);
+              });
+            }}
+            onEndReachedThreshold={3}
+          />
+        </UsableHeightContext.Provider>
+      </View>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+const getNextQuestion = () => {
+  return fetch("https://cross-platform.rp.devfactory.com/for_you").then((res) =>
+    res.json()
+  );
+};
